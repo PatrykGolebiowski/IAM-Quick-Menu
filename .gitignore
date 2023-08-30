@@ -1,0 +1,8 @@
+### backend
+# Virtual environment
+env/
+*.env/
+
+# Compiled Python files
+__pycache__/
+*.py[cod]
