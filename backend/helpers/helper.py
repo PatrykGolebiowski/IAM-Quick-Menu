@@ -2,6 +2,7 @@ import os
 import csv
 
 # Function to load the licensing data from the CSV file
+# https://learn.microsoft.com/en-us/azure/active-directory/enterprise-users/licensing-service-plan-reference
 def load_licensing_data():
     script_directory = os.path.dirname(os.path.abspath(__file__))
     licensing_file_path = os.path.join(script_directory, "..", "assets", "licensing.csv")
