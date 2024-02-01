@@ -3,5 +3,9 @@
         "Address": "localhost",
         "Port": "8080",
         "Protocol": "http"
+    },
+    "Auth": {
+        "TenantId": "",
+        "ClientId": ""    
     }
 }
