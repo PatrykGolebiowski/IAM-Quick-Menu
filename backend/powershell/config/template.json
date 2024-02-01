@@ -1,0 +1,7 @@
+{
+    "ServerProperties": {
+        "Address": "localhost",
+        "Port": "8080",
+        "Protocol": "http"
+    }
+}

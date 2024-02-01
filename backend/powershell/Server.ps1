@@ -39,8 +39,9 @@ function ConvertTo-DateTime($Object) {
 }
 
 Start-PodeServer -Thread 1 {
-    ### Attach to port 8080 for http
-    Add-PodeEndpoint -Address "localhost" -Port 8080 -Protocol Http
+    $config = Get-Content -Path ".\config\main.json" | ConvertFrom-Json
+
+    Add-PodeEndpoint -Address $config.ServerProperties.Address -Port $config.ServerProperties.Port -Protocol $config.ServerProperties.Protocol
     
     ### Enable logging
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
