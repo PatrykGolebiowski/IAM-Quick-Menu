@@ -68,36 +68,34 @@ function Test-JwtToken ($Token, $ClientId) {
     try {
         $openidConfig = (Invoke-WebRequest -Uri "https://login.microsoftonline.com/common/.well-known/openid-configuration").Content | ConvertFrom-Json
         $discoveryKeys = (Invoke-WebRequest -Uri $openidConfig.jwks_uri).Content | ConvertFrom-Json
-
-        $jwtHeader = Get-JwtHeader -jwt $Token | ConvertFrom-Json
-        $jwtPayload = Get-JwtPayload -jwt $Token | ConvertFrom-Json
-
-        if ($discoveryKeys.keys.kid -contains $jwtHeader.kid) {
-            if ($currentTimeUnix -lt $jwtPayload.exp) {
-                if ($ClientId -eq $jwtPayload.appid ) {
-                    return $true
-                }
-                else {
-                    $message = "App id does not match"
-                    $message | Write-PodeErrorLog
-                }
-            }
-            else {
-                $message = "Token is expired"
-                $message | Write-PodeErrorLog
-            }
-        }
-        else {
-            $message = "Kid does not match"
-            $message | Write-PodeErrorLog
-        }
     }
     catch {
-        $message = "An error occurred: $_"
+        $message = "An error occurred during download of OpenId configuration: $_"
         $message | Write-PodeErrorLog
     }
 
-    return $false
+    $jwtHeader = Get-JwtHeader -jwt $Token | ConvertFrom-Json
+    $jwtPayload = Get-JwtPayload -jwt $Token | ConvertFrom-Json
+
+    # Check if the kid matches
+    if (-not ($discoveryKeys.keys.kid -contains $jwtHeader.kid)) {
+        Write-PodeErrorLog "Kid does not match"
+        return $false
+    }
+
+    # Check if the token is expired
+    if ($currentTimeUnix -ge $jwtPayload.exp) {
+        Write-PodeErrorLog "Token is expired"
+        return $false
+    }
+
+    # Check if clientid matches
+    if (-not ($jwtPayload.appid -eq $ClientId)) {
+        Write-PodeErrorLog "ClientId does not match"
+        return $false
+    }
+
+    return $true
 }
 
 
