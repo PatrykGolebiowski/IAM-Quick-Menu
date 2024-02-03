@@ -133,8 +133,7 @@ Start-PodeServer -Thread 1 {
     }
 
     ### Middlewares
-    Add-PodeAuthMiddleware -Name 'GlobalAuthValidation' -Authentication 'Auth'
-
+    Add-PodeAuthMiddleware -Name "GlobalAuthValidation" -Authentication "Auth"
 
     ### Events
     Register-PodeEvent -Type Terminate -Name "Default" -ScriptBlock {
