@@ -141,5 +141,6 @@ Start-PodeServer -Thread 1 {
 
     ### Routes
     Use-PodeRoutes -Path ".\routes\ActiveDirectory.ps1"
+    Use-PodeRoutes -Path ".\routes\Graph.ps1"
 
 }
