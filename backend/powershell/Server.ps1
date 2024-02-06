@@ -1,3 +1,10 @@
+Import-Module ExchangeOnlineManagement
+
+
+$config = Get-Content -Path ".\config\main.json" | ConvertFrom-Json
+Connect-ExchangeOnline -CertificateThumbPrint $config.Exchange.CertificateThumbPrint -AppID $config.Auth.ClientId -Organization $config.Exchange.Organization -ShowBanner:$false
+
+
 function ConvertTo-DateTime($Object) {
     <#
     .SYNOPSIS
@@ -100,7 +107,6 @@ function Test-JwtToken ($Token, $ClientId) {
 
 
 Start-PodeServer -Thread 1 {
-    $config = Get-Content -Path ".\config\main.json" | ConvertFrom-Json
     Add-PodeEndpoint -Address $config.ServerProperties.Address -Port $config.ServerProperties.Port -Protocol $config.ServerProperties.Protocol
     
     ### Enable logging
@@ -138,9 +144,9 @@ Start-PodeServer -Thread 1 {
 
     }
 
-
     ### Routes
     Use-PodeRoutes -Path ".\routes\ActiveDirectory.ps1"
     Use-PodeRoutes -Path ".\routes\Graph.ps1"
+    Use-PodeRoutes -Path ".\routes\ExchangeOnline.ps1"
 
 }

@@ -109,4 +109,7 @@ Add-PodeRouteGroup -Path "/graph" -Routes {
         Write-PodeJsonResponse $response
 
     }
+
+    
+
 }
