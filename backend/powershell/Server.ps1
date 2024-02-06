@@ -108,12 +108,15 @@ function Test-JwtToken ($Token, $ClientId) {
 
 Start-PodeServer -Thread 1 {
     Add-PodeEndpoint -Address $config.ServerProperties.Address -Port $config.ServerProperties.Port -Protocol $config.ServerProperties.Protocol
-    
+
     ### Enable logging
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
+
+
     
     ### Authentication
-    New-PodeAuthScheme -Bearer | Add-PodeAuth -Name "Auth" -ArgumentList $config -Sessionless -ScriptBlock {
+    # Bearer auth
+    New-PodeAuthScheme -Bearer | Add-PodeAuth -Name "Bearer" -ArgumentList $config -Sessionless -ScriptBlock {
         param($token, $config)
 
         if ($token) {
@@ -132,21 +135,38 @@ Start-PodeServer -Thread 1 {
             }
         }
 
-        # authentication failed
         return $null
     }
 
+    # Azure auth
+    Enable-PodeSessionMiddleware -Duration 120 -Extend
+
+    $scheme = New-PodeAuthAzureADScheme -ClientID $config.Auth.ClientId -ClientSecret $config.Auth.ClientSecret -Tenant $config.Auth.TenantId
+    $scheme | Add-PodeAuth -Name "AzureAD" -SuccessUrl "/" -ScriptBlock {
+        param($user, $accessToken, $refreshToken, $response)
+        # check if the user is valid
+        return @{ User = $user }
+    }
+
+
     ### Middlewares
-    Add-PodeAuthMiddleware -Name "GlobalAuthValidation" -Authentication "Auth"
+    Add-PodeAuthMiddleware -Name "ApiAuthValidation" -Authentication "Bearer" -Route "/api/*"
+    Add-PodeAuthMiddleware -Name "DocAuthValidation" -Authentication "AzureAD" -Route "/docs/*"
+        
 
     ### Events
     Register-PodeEvent -Type Terminate -Name "Default" -ScriptBlock {
 
     }
 
+
     ### Routes
+    Enable-PodeOpenApi -Path "/docs/openapi" -Title "IAM-Quick-Menu" -Version "0.0.1" -RouteFilter "/api/*"
+    Enable-PodeOpenApiViewer -Path "/docs/swagger" -Title "IAM-Quick-Menu" -OpenApi "/docs/openapi" -Type Swagger -DarkMode   
+
     Use-PodeRoutes -Path ".\routes\ActiveDirectory.ps1"
     Use-PodeRoutes -Path ".\routes\Graph.ps1"
     Use-PodeRoutes -Path ".\routes\ExchangeOnline.ps1"
+
 
 }

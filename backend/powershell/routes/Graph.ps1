@@ -1,4 +1,4 @@
-Add-PodeRouteGroup -Path "/graph" -Routes {
+Add-PodeRouteGroup -Path "/api/graph" -Routes {
 
     Add-PodeRoute -Method Get -Path "/object" -ScriptBlock {
         $identity = $WebEvent.Query["identity"]

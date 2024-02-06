@@ -1,4 +1,4 @@
-Add-PodeRouteGroup -Path "/activedirectory" -Routes {
+Add-PodeRouteGroup -Path "/api/activedirectory" -Routes {
 
     Add-PodeRoute -Method Get -Path "/object" -ScriptBlock {
         $domain = $WebEvent.Query["domain"]

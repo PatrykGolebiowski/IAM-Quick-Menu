@@ -1,4 +1,4 @@
-Add-PodeRouteGroup -Path "/exchangeonline" -Routes {
+Add-PodeRouteGroup -Path "/api/exchangeonline" -Routes {
 
     Add-PodeRoute -Method Get -Path "/recipient/:identity" -ScriptBlock {
         $identity = $WebEvent.Parameters["identity"]
