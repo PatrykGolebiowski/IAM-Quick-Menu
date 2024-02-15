@@ -12,6 +12,36 @@ Add-PodeRouteGroup -Path "/api/graph" -Routes {
             (New-PodeOAStringProperty -Name "Notes")
         ))
     }
+    Add-PodeOAComponentRequestBody -Name "EmailBody" -Required -ContentSchemas @{
+        "application/json" = (New-PodeOAObjectProperty -Properties @(
+            (New-PodeOAObjectProperty -Name "message" -Properties @(
+                (New-PodeOAStringProperty -Name "subject"),
+                (New-PodeOAObjectProperty -Name "body" -Properties @(
+                    (New-PodeOAStringProperty -Name "contentType"),
+                    (New-PodeOAStringProperty -Name "content")
+                )),
+                (New-PodeOAObjectProperty -Name "toRecipients" -Properties @( 
+                    (New-PodeOAObjectProperty -Name "emailAddress" -Properties @(
+                        (New-PodeOAStringProperty -Name "name"),
+                        (New-PodeOAStringProperty -Name "address")
+                    ))
+                )),
+                (New-PodeOAObjectProperty -Name "ccRecipients" -Properties @( 
+                    (New-PodeOAObjectProperty -Name "emailAddress" -Properties @(
+                        (New-PodeOAStringProperty -Name "name"),
+                        (New-PodeOAStringProperty -Name "address")
+                    ))
+                )),
+                (New-PodeOAObjectProperty -Name "mentions" -Properties @( 
+                    (New-PodeOAObjectProperty -Name "mentioned" -Properties @(
+                        (New-PodeOAStringProperty -Name "name"),
+                        (New-PodeOAStringProperty -Name "address")
+                    ))
+                ))
+            )),
+            (New-PodeOABoolProperty -Name "saveToSentItems")
+        ))
+    }
 
     # Schemas
     Add-PodeOAComponentSchema -Name "EntraUserSchema" -Schema (
@@ -339,7 +369,6 @@ Add-PodeRouteGroup -Path "/api/graph" -Routes {
     Add-PodeOAResponse -StatusCode 404 -Description "Error: Not Found - The requested resource does not exist."
 
 
-
     # POST
     Add-PodeRoute -Method Post -Path "/applications" -ScriptBlock {
         $body = $WebEvent.Data
@@ -392,5 +421,54 @@ Add-PodeRouteGroup -Path "/api/graph" -Routes {
     Add-PodeOAResponse -StatusCode 400 -Description "Error: Bad request - Invalid request." -PassThru |
     Add-PodeOAResponse -StatusCode 401 -Description "Error: Unauthorized - Check your authentication headers or token."
     
+
+    Add-PodeRoute -Method Post -Path "/sendMail" -ScriptBlock {
+        $body = $WebEvent.Data
+
+
+        $baseUri = "https://graph.microsoft.com/beta/me/sendMail"
+        $headers = @{
+            "Authorization" = "Bearer $($WebEvent.Auth.User.Token)"
+            "Content-Type"  = "application/json"
+        }
+
+        $body = @{
+            "message" = $body.message
+            "SaveToSentItems" = $body.SaveToSentItems 
+        } | ConvertTo-Json -Depth 4
+
+
+        try {
+            $response = Invoke-RestMethod -Uri $baseUri -Headers $headers -Method Post -Body $body -ErrorAction Stop
+            $response.PSObject.Properties.Remove("@odata.context")
+
+            Write-PodeJsonResponse -Value $response -StatusCode 202
+        }
+        catch [System.Net.WebException] {
+            $response = $_.Exception.Response
+            $statusCode = $response.StatusCode
+
+            if ($statusCode -eq [System.Net.HttpStatusCode]::BadRequest) {
+                Set-PodeResponseStatus -Code 400 -Description "Error: Bad request - Invalid request." -Exception $_.Exception
+            }
+            elseif ($statusCode -eq [System.Net.HttpStatusCode]::Unauthorized) {
+                Set-PodeResponseStatus -Code 401 -Description "Error: Unauthorized - Check your authentication headers or token." -Exception $_.Exception
+            
+            }
+            else {
+                Write-Host "HTTP error code: $statusCode"
+            }
+        }
+        catch {
+            # Handle any other non-HTTP exceptions here
+            Write-Host "An unexpected error occurred: $_"
+        }
+
+    } -PassThru |
+    Set-PodeOARouteInfo -Summary "Send an email as logged in user" -Tags "Graph" -PassThru |
+    Set-PodeOARequest -RequestBody (New-PodeOARequestBody -Reference "EmailBody") -PassThru |
+    Add-PodeOAResponse -StatusCode 202 -Description "Accepted" -PassThru |
+    Add-PodeOAResponse -StatusCode 400 -Description "Error: Bad request - Invalid request." -PassThru |
+    Add-PodeOAResponse -StatusCode 401 -Description "Error: Unauthorized - Check your authentication headers or token."
 
 }
