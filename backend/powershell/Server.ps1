@@ -2,7 +2,7 @@ Import-Module ExchangeOnlineManagement
 
 
 $config = Get-Content -Path ".\config\main.json" | ConvertFrom-Json
-#Connect-ExchangeOnline -CertificateThumbPrint $config.Exchange.CertificateThumbPrint -AppID $config.Auth.ClientId -Organization $config.Exchange.Organization -ShowBanner:$false
+Connect-ExchangeOnline -CertificateThumbPrint $config.Exchange.CertificateThumbPrint -AppID $config.Auth.ClientId -Organization $config.Exchange.Organization -ShowBanner:$false
 
 
 function ConvertTo-DateTime($Object) {
