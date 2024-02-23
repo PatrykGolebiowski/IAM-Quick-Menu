@@ -336,7 +336,7 @@ Add-PodeRouteGroup -Path "/api/graph" -Routes {
             $response = Invoke-RestMethod -Uri $applicationUri -Headers $headers -Method Get -ErrorAction Stop
             $response.PSObject.Properties.Remove("@odata.context")
 
-            Write-PodeJsonResponse -Value $objectResponse
+            Write-PodeJsonResponse -Value $response
         }
         catch [System.Net.WebException] {
             $response = $_.Exception.Response
