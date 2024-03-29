@@ -1,0 +1,29 @@
+[package]
+name = "iam-quick-menu"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = [ "fs-all", "shell-open"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.6.12", features = ["headers"] }
+oauth2 = "4.3"
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "json"] }
+open = "4.0.2"
+dotenv = "0.15.0"
+toml = "0.8.10"
+anyhow = "1.0.81"
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+
+[features]
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
